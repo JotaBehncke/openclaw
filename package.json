@@ -1,10 +1,9 @@
 {
-  "name": "openclaw-mini",
+  "name": "openclaw-bot",
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
     "build": "npm install",
-    "start": "node node_modules/openclaw/dist/entry.mjs"
+    "start": "npx openclaw onboard --non-interactive"
   },
   "dependencies": {
     "openclaw": "latest"
