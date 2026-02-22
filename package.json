@@ -1,13 +1,12 @@
 {
-  "name": "openclaw-bot",
+  "name": "bot-groq-esp",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "npm install",
-    "start": "npx openclaw start"
+    "start": "node index.js"
   },
   "dependencies": {
-    "openclaw": "latest",
-    "http-server": "latest"
+    "telegraf": "^4.16.3",
+    "openai": "^4.28.0"
   }
 }
