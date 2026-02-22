@@ -1,11 +1,13 @@
 {
   "name": "openclaw-bot",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "build": "npm install",
-    "start": "npx openclaw onboard --non-interactive"
+    "start": "npx openclaw start"
   },
   "dependencies": {
-    "openclaw": "latest"
+    "openclaw": "latest",
+    "http-server": "latest"
   }
 }
