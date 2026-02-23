@@ -1,31 +1,40 @@
 import { Telegraf } from 'telegraf';
+import OpenAI from 'openai';
+import express from 'express';
 
-// Usamos el nombre exacto que pondrás en Railway
-const token = process.env.TELEGRAM_TOKEN;
+// 1. Configuración de la IA
+const ai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1"
+});
 
-console.log("-----------------------------------------");
-if (!token) {
-    console.log("❌ ERROR: No hay ninguna variable llamada TELEGRAM_TOKEN");
-} else {
-    console.log("🔍 TOKEN DETECTADO. Comienza con:", token.substring(0, 5));
-    console.log("🔍 LONGITUD DEL TOKEN:", token.length);
-}
-console.log("-----------------------------------------");
+// 2. Configuración del Bot
+const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 
-const bot = new Telegraf(token || '');
+bot.start((ctx) => ctx.reply('¡Bot listo! Ahora sí, pregúntame lo que quieras.'));
 
-bot.telegram.getMe()
-    .then((me) => {
-        console.log("✅ ¡CONECTADO EXITOSAMENTE!");
-        console.log("🤖 Nombre del bot:", me.username);
-    })
-    .catch((err) => {
-        console.log("❌ ERROR DE TELEGRAM:", err.message);
-        if (err.message.includes("401")) {
-            console.log("👉 EL TOKEN ES INVÁLIDO. Revisa que no tenga espacios o que no sea la clave de Groq.");
-        }
+bot.on('text', async (ctx) => {
+  try {
+    const chatCompletion = await ai.chat.completions.create({
+      messages: [{ role: 'user', content: ctx.message.text }],
+      model: 'llama3-8b-8192',
     });
+    await ctx.reply(chatCompletion.choices[0].message.content);
+  } catch (error) {
+    console.error("Error Groq:", error);
+    await ctx.reply('Tengo el token de Telegram bien, pero algo falló con la IA.');
+  }
+});
 
-// Esto es para que Railway no lo mate por falta de puerto
-import http from 'http';
-http.createServer((req, res) => res.end('Bot activo')).listen(process.env.PORT || 8080);
+// 3. Servidor de "Vida" para Railway
+const app = express();
+app.get('/', (req, res) => res.send('El bot está despierto 🤖'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Servidor de salud en puerto ${PORT}`);
+  bot.launch().then(() => console.log('✅ Bot conectado a Telegram'));
+});
+
+// Manejo de errores para que no crashee
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
