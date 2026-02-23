@@ -1,30 +1,26 @@
 import { Telegraf } from 'telegraf';
-import express from 'express';
 
 const token = process.env.TELEGRAM_TOKEN;
 
 if (!token) {
-  console.error("❌ ERROR: No hay TELEGRAM_TOKEN");
+  console.log("❌ ERROR: No se encontró la variable TELEGRAM_TOKEN en Railway.");
   process.exit(1);
 }
 
 const bot = new Telegraf(token);
-const app = express();
 
-// Esto le dice a Railway: "ESTOY VIVO" de inmediato
-app.get('/', (req, res) => res.status(200).send('OK'));
+bot.start((ctx) => ctx.reply('¡POR FIN! Si lees esto, el bot está vivo.'));
+bot.on('text', (ctx) => ctx.reply('Recibido: ' + ctx.message.text));
 
-bot.start((ctx) => ctx.reply('¡POR FIN! Si lees esto, el bot no crasheó.'));
-bot.on('text', (ctx) => ctx.reply('Recibido'));
+console.log("Intentando conectar con Telegram...");
 
-const PORT = process.env.PORT || 3000;
+bot.launch()
+  .then(() => console.log("✅ BOT CONECTADO EXITOSAMENTE"))
+  .catch((err) => {
+    console.error("❌ ERROR AL LANZAR EL BOT:", err.message);
+    process.exit(1);
+  });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('✅ Servidor iniciado en puerto', PORT);
-  bot.launch()
-    .then(() => console.log('✅ Bot conectado a Telegram'))
-    .catch((err) => console.error('❌ Error Telegram:', err.message));
-});
-
-// Evita que Node se cierre por errores pequeños
-process.on('uncaughtException', (err) => console.error('Error no capturado:', err));
+// Mantener el proceso vivo sin servidor web
+import http from 'http';
+http.createServer((req, res) => { res.write('OK'); res.end(); }).listen(process.env.PORT || 8080);
