@@ -1,16 +1,31 @@
 import { Telegraf } from 'telegraf';
 
-// PEGA TU TOKEN AQUÍ ADENTRO DE LAS COMILLAS
-// Ejemplo: const bot = new Telegraf('123456789:ABCDE...');
-const bot = new Telegraf('TU_TOKEN_DE_BOTFATHER_AQUÍ'); 
+// Usamos el nombre exacto que pondrás en Railway
+const token = process.env.TELEGRAM_TOKEN;
 
-bot.start((ctx) => ctx.reply('¡AL FIN! El bot está vivo.'));
-bot.on('text', (ctx) => ctx.reply('Te recibo perfecto: ' + ctx.message.text));
+console.log("-----------------------------------------");
+if (!token) {
+    console.log("❌ ERROR: No hay ninguna variable llamada TELEGRAM_TOKEN");
+} else {
+    console.log("🔍 TOKEN DETECTADO. Comienza con:", token.substring(0, 5));
+    console.log("🔍 LONGITUD DEL TOKEN:", token.length);
+}
+console.log("-----------------------------------------");
 
-bot.launch()
-  .then(() => console.log('✅ BOT CONECTADO DIRECTAMENTE'))
-  .catch((err) => console.log('❌ ERROR DEFINITIVO:', err.message));
+const bot = new Telegraf(token || '');
+
+bot.telegram.getMe()
+    .then((me) => {
+        console.log("✅ ¡CONECTADO EXITOSAMENTE!");
+        console.log("🤖 Nombre del bot:", me.username);
+    })
+    .catch((err) => {
+        console.log("❌ ERROR DE TELEGRAM:", err.message);
+        if (err.message.includes("401")) {
+            console.log("👉 EL TOKEN ES INVÁLIDO. Revisa que no tenga espacios o que no sea la clave de Groq.");
+        }
+    });
 
 // Esto es para que Railway no lo mate por falta de puerto
 import http from 'http';
-http.createServer((req, res) => res.end('Bot vivo')).listen(process.env.PORT || 8080);
+http.createServer((req, res) => res.end('Bot activo')).listen(process.env.PORT || 8080);
