@@ -1,26 +1,18 @@
 import { Telegraf } from 'telegraf';
+import express from 'express';
 
-const token = process.env.TELEGRAM_TOKEN;
+const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
+const app = express();
 
-if (!token) {
-  console.log("❌ ERROR: No se encontró la variable TELEGRAM_TOKEN en Railway.");
-  process.exit(1);
-}
+app.get('/', (req, res) => res.send('Servidor activo'));
 
-const bot = new Telegraf(token);
+bot.start((ctx) => ctx.reply('¡Hola! Por fin funciono.'));
+bot.on('text', (ctx) => ctx.reply('Recibí esto: ' + ctx.message.text));
 
-bot.start((ctx) => ctx.reply('¡POR FIN! Si lees esto, el bot está vivo.'));
-bot.on('text', (ctx) => ctx.reply('Recibido: ' + ctx.message.text));
-
-console.log("Intentando conectar con Telegram...");
-
-bot.launch()
-  .then(() => console.log("✅ BOT CONECTADO EXITOSAMENTE"))
-  .catch((err) => {
-    console.error("❌ ERROR AL LANZAR EL BOT:", err.message);
-    process.exit(1);
-  });
-
-// Mantener el proceso vivo sin servidor web
-import http from 'http';
-http.createServer((req, res) => { res.write('OK'); res.end(); }).listen(process.env.PORT || 8080);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('✅ Servidor web listo en puerto', PORT);
+  bot.launch()
+    .then(() => console.log('✅ Bot conectado a Telegram'))
+    .catch((err) => console.error('❌ Error de Telegram:', err));
+});
